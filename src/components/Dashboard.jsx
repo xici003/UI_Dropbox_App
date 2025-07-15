@@ -23,6 +23,7 @@ function Dashboard() {
   const [openInput, setOpenInput] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [showUploadMenu, setShowUploadMenu] = useState(false);
+  const [contactId, setContactId] = useState(null);
   // useEffect(() => {
   //   const createContactFolder = async () => {
   //     try {
@@ -45,6 +46,11 @@ function Dashboard() {
 
   //   createContactFolder();
   // }, [contactName]);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("contactId");
+    setContactId(id);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,6 +104,7 @@ function Dashboard() {
         <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 flex items-center gap-2">
           <Folder /> Dropbox Folder for:{" "}
           <span className="highlight">NguyenVanA</span>
+          <p>{contactId}</p>
         </h2>
 
         <button

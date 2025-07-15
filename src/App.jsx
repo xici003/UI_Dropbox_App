@@ -66,12 +66,6 @@ function App() {
     checkAuth();
   }, [checkAuth]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("contactId");
-    console.log(id);
-  }, []);
-
   if (isCheckingAuth) return <div className="loading">Loading...</div>;
 
   return <RouterProvider router={appRouter} />;
