@@ -10,7 +10,11 @@ export const useContactStore = create(
     setContactIdFromUrl: () => {
       const params = new URLSearchParams(window.location.search);
       const id = params.get("contactId");
-      set({ contactId: id });
+      if (id) {
+        set({ contactId: id });
+      } else {
+        console.warn("No contactId found in URL");
+      }
     },
     fetchContactDetails: async () => {
       try {

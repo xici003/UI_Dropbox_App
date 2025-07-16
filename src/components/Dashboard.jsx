@@ -39,12 +39,20 @@ function Dashboard() {
   }, []);
 
   useEffect(() => {
-    if (contactId) {
-      fetchContactDetails();
-      setContactName(
-        `${contactDetails?.properties.firstname} ${contactDetails?.properties.lastname}`
-      );
-    }
+    const fetchAndSetContact = async () => {
+      if (!contactId) return;
+
+      await fetchContactDetails();
+
+      const details = useContactStore.getState().contactDetails;
+      if (details?.properties) {
+        setContactName(
+          `${details.properties.firstname} ${details.properties.lastname}`
+        );
+      }
+    };
+
+    fetchAndSetContact();
   }, [contactId]);
 
   useEffect(() => {
