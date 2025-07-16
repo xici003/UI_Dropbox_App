@@ -6,6 +6,7 @@ import ShareFile from "./ShareFile.jsx";
 import { useDropboxStore } from "../store/useDropboxStore.js";
 import Toast from "./Toast";
 import { useAuthenticated } from "../store/useAuthenticated";
+import { data } from "react-router-dom";
 
 function Dashboard() {
   const contactName = "NguyenVanA";
@@ -51,6 +52,28 @@ function Dashboard() {
     const id = params.get("contactId");
     setContactId(id);
   }, []);
+  useEffect(() => {
+    const fetchContactDetails = async () => {
+      if (!contactId) return;
+      try {
+        const response = await fetch(
+          `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}`,
+          {
+            headers: {
+              Authorization: `Bearer YOUR_HUBSPOT_ACCESS_TOKEN`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const data = await response.json();
+        console.log("Contact details:", data);
+      } catch (err) {
+        console.error("Failed to fetch HubSpot contact details:", err);
+      }
+    };
+
+    fetchContactDetails();
+  }, [contactId]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -104,7 +127,7 @@ function Dashboard() {
         <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 flex items-center gap-2">
           <Folder /> Dropbox Folder for:{" "}
           <span className="highlight">NguyenVanA</span>
-          <p className="text-lg">Contact ID: {contactId}</p>
+          <p className="text-lg">Contact ID: {data.properties.firstname}</p>
         </h2>
 
         <button
