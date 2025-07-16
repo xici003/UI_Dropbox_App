@@ -104,7 +104,7 @@ function Dashboard() {
         <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 flex items-center gap-2">
           <Folder /> Dropbox Folder for:{" "}
           <span className="highlight">NguyenVanA</span>
-          <p>{contactId}</p>
+          <p className="text-lg">Contact ID: {contactId}</p>
         </h2>
 
         <button
