@@ -6,84 +6,70 @@ import ShareFile from "./ShareFile.jsx";
 import { useDropboxStore } from "../store/useDropboxStore.js";
 import Toast from "./Toast";
 import { useAuthenticated } from "../store/useAuthenticated";
-import { data } from "react-router-dom";
+import { useContactStore } from "../store/useContactStore";
 
 function Dashboard() {
-  const contactName = "NguyenVanA";
   const { logout } = useAuthenticated();
   const {
     items,
+    getFolderItems,
     listFolder,
     uploadFileOrFolder,
     createFolder,
     loading,
     message,
+    setMessage,
     currentPath,
     goBack,
   } = useDropboxStore();
+  const {
+    contactId,
+    setContactIdFromUrl,
+    fetchContactDetails,
+    contactDetails,
+  } = useContactStore();
+
+  const [contactName, setContactName] = useState("");
   const [openInput, setOpenInput] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [showUploadMenu, setShowUploadMenu] = useState(false);
-  const [contactId, setContactId] = useState(null);
-  // useEffect(() => {
-  //   const createContactFolder = async () => {
-  //     try {
-  //       const response = await axios.post(
-  //         "http://localhost:3000/dropbox/create-folder",
-  //         { path: `/${contactName}` },
-  //         { withCredentials: true }
-  //       );
-  //       setMessage(response.data.message);
-  //     } catch (error) {
-  //       if (error.response?.status === 409) return;
-  //       const errMsg =
-  //         error.response?.data?.message +
-  //           (error.response?.data?.error
-  //             ? `: ${error.response.data.error}`
-  //             : "") || error.message;
-  //       setMessage(` ${errMsg}`);
-  //     }
-  //   };
 
-  //   createContactFolder();
-  // }, [contactName]);
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("contactId");
-    setContactId(id);
+    setContactIdFromUrl();
   }, []);
-  useEffect(() => {
-    const fetchContactDetails = async () => {
-      if (!contactId) return;
-      try {
-        const response = await fetch(
-          `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}`,
-          {
-            headers: {
-              Authorization: `Bearer YOUR_HUBSPOT_ACCESS_TOKEN`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        const data = await response.json();
-        console.log("Contact details:", data);
-      } catch (err) {
-        console.error("Failed to fetch HubSpot contact details:", err);
-      }
-    };
 
-    fetchContactDetails();
+  useEffect(() => {
+    if (contactId) {
+      fetchContactDetails();
+      setContactName(
+        `${contactDetails?.properties.firstname} ${contactDetails?.properties.lastname}`
+      );
+    }
   }, [contactId]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const ensureContactFolder = async () => {
+      if (!contactName) return;
+
       try {
+        const rootItems = await getFolderItems("/");
+
+        const folderExists = rootItems.some(
+          (item) => item.name === contactName && item[".tag"] === "folder"
+        );
+
+        if (!folderExists) {
+          console.log(`Folder '${contactName}' not found. Creating...`);
+          await createFolder(contactName);
+        }
+
         await listFolder(contactName);
       } catch (error) {
-        console.error(error);
+        console.error("Error ensuring and fetching folder:", error);
       }
     };
-    fetchData();
+
+    ensureContactFolder();
   }, [contactName]);
 
   const handleUpload = async (files) => {
@@ -108,7 +94,8 @@ function Dashboard() {
   const handleAdd = async (e) => {
     e.preventDefault();
     try {
-      await createFolder(contactName, newFolderName);
+      const path = `${contactName}/${newFolderName}`;
+      await createFolder(path);
       setNewFolderName("");
     } catch (error) {
       console.log(error);
@@ -126,8 +113,7 @@ function Dashboard() {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 flex items-center gap-2">
           <Folder /> Dropbox Folder for:{" "}
-          <span className="highlight">NguyenVanA</span>
-          <p className="text-lg">Contact ID: {data.properties.firstname}</p>
+          <span className="highlight">{contactName}</span>
         </h2>
 
         <button

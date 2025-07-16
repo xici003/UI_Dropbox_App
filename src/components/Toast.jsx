@@ -11,7 +11,7 @@ function Toast({ message, duration = 3000, onClose }) {
         setVisible(false);
         setTimeout(() => {
           if (onClose) onClose();
-        }, 300); // delay cho animation biến mất
+        }, 300);
       }, duration);
 
       return () => clearTimeout(timer);

@@ -10,6 +10,21 @@ export const useDropboxStore = create((set, get) => ({
   message: "",
   currentPath: "",
   pathHistory: [],
+  setMessage: (msg) => set({ message: msg }),
+  getFolderItems: async (path) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:3000/dropbox/list-folder`,
+        { path },
+        { withCredentials: true }
+      );
+
+      return response.data.data.entries;
+    } catch (error) {
+      console.error("Error getting folder items:", error);
+      return [];
+    }
+  },
 
   listFolder: async (path) => {
     set({ loading: true });
@@ -57,19 +72,19 @@ export const useDropboxStore = create((set, get) => ({
       );
       set({
         isLoadingUpload: false,
-        successMessage: response.data.message,
+        message: response.data.message,
       });
     } catch (error) {
       console.error("Upload failed:", error);
     }
   },
 
-  createFolder: async (contactName, folderName) => {
+  createFolder: async (path) => {
     set({ isCreatingFolder: true });
     try {
       const response = await axios.post(
         "http://localhost:3000/dropbox/create-folder",
-        { path: `/${contactName}/${folderName}` },
+        { path: `/${path}` },
         { withCredentials: true }
       );
       set({ loading: false, message: response.data.message });
