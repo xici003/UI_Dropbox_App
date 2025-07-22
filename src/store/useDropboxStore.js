@@ -190,6 +190,28 @@ export const useDropboxStore = create((set, get) => ({
       throw new Error("Failed to get share link");
     }
   },
+  addPeopleToSharedFolder: async (
+    sharedFolderId,
+    email,
+    accessLevel,
+    message
+  ) => {
+    try {
+      set({ isShareFolder: true });
+
+      const addPeopleResponse = await axios.post(
+        "http://localhost:3000/dropbox/add-people-to-shared-file",
+        { email, sharedFolderId, accessLevel, message },
+        { withCredentials: true }
+      );
+
+      set({ isShareFolder: false, message: addPeopleResponse.data.message });
+    } catch (err) {
+      console.error("Error adding people to shared folder:", err);
+      set({ isShareFolder: false });
+      throw new Error("Failed to add people to shared folder");
+    }
+  },
   goBack: async () => {
     const { pathHistory } = get();
     if (pathHistory.length <= 1) return; // Check root

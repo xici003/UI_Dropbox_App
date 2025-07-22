@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { Share, ArrowLeft } from "lucide-react";
+import { Share, ArrowLeft, UserRoundPlus } from "lucide-react";
 import { useDropboxStore } from "../store/useDropboxStore";
+import AddPeopleModal from "./AddPeopleModal";
 
 function ShareFile({ contactName }) {
   const { items, getShareLink } = useDropboxStore();
   const [currentPath, setCurrentPath] = useState("/");
   const [selectedFile, setSelectedFile] = useState(null);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showAddPeopleModal, setShowAddPeopleModal] = useState(false); // New state for add people modal
   const [shareLink, setShareLink] = useState("");
 
   const findFolderByPath = (items, path) => {
@@ -31,6 +33,7 @@ function ShareFile({ contactName }) {
     segments.pop(); // remove last
     setCurrentPath("/" + segments.join("/"));
   };
+
   const handleShare = async () => {
     try {
       const link = await getShareLink(contactName, selectedFile.path);
@@ -152,11 +155,18 @@ function ShareFile({ contactName }) {
       {/* Share Modal */}
       {showShareModal && (
         <dialog id="share_modal" className="modal modal-open">
-          <div className="modal-box">
+          <div className="modal-box bg-[#f7f5f2]">
             <h3 className="font-bold text-lg mb-4">Share file</h3>
             <p className="text-gray-700 mb-4">
               You selected: <strong>{selectedFile?.name}</strong>
             </p>
+            {/* Add People button */}
+            <button
+              className="btn border border-gray-300 rounded-lg w-full mt-4 mb-4 flex items-center justify-center"
+              onClick={() => setShowAddPeopleModal(true)}
+            >
+              <UserRoundPlus size={18} /> Add People
+            </button>
 
             <div className="flex flex-col gap-2">
               <input
@@ -182,6 +192,14 @@ function ShareFile({ contactName }) {
             </div>
           </div>
         </dialog>
+      )}
+
+      {/* Add People Modal */}
+      {showAddPeopleModal && (
+        <AddPeopleModal
+          selectedFile={selectedFile}
+          setShowAddPeopleModal={setShowAddPeopleModal}
+        />
       )}
     </div>
   );
