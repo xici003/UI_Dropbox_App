@@ -10,6 +10,8 @@ export const useDropboxStore = create((set, get) => ({
   message: "",
   currentPath: "",
   pathHistory: [],
+  previewUrl: "",
+  setPreviewUrl: (url) => set({ previewUrl: url }),
   setMessage: (msg) => set({ message: msg }),
   getFolderItems: async (path) => {
     try {
@@ -188,6 +190,21 @@ export const useDropboxStore = create((set, get) => ({
       console.error(err);
       set({ isShareFolder: false });
       throw new Error("Failed to get share link");
+    }
+  },
+  getPreview: async (path) => {
+    try {
+      const res = await axios.post(
+        "http://localhost:3000/dropbox/get-preview",
+        { path },
+        {
+          withCredentials: true,
+        }
+      );
+      return res.data.data.link;
+    } catch (err) {
+      console.error(err);
+      throw new Error("Failed to get preview");
     }
   },
   addPeopleToSharedFolder: async (

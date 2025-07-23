@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuthenticated } from "../store/useAuthenticated";
 import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
-  const { loading, login, isAuthenticated } = useAuthenticated();
+  const { login } = useAuthenticated();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({

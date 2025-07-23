@@ -8,8 +8,15 @@ const TreeItem = ({ item, contactName }) => {
   const [showShare, setShowShare] = useState(false);
   const [shareLink, setShareLink] = useState("");
 
-  const { renameItem, deleteItem, getShareLink, listFolder, isShareFolder } =
-    useDropboxStore();
+  const {
+    renameItem,
+    deleteItem,
+    getShareLink,
+    getPreview,
+    setPreviewUrl,
+    listFolder,
+    isShareFolder,
+  } = useDropboxStore();
   const isFolder = item.tag === "folder";
   const modified = item.client_modified || null;
 
@@ -40,6 +47,19 @@ const TreeItem = ({ item, contactName }) => {
       setShareLink(link);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handlePreview = async () => {
+    const path = `/${contactName}${item.path}`;
+    try {
+      const tempLink = await getPreview(path);
+      const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(
+        tempLink
+      )}&embedded=true`;
+      setPreviewUrl(googleViewerUrl);
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -75,14 +95,14 @@ const TreeItem = ({ item, contactName }) => {
               autoFocus
             />
           ) : (
-            <span
+            <button
               className={`truncate max-w-[300px] ${
                 isFolder ? "cursor-pointer hover:underline" : ""
               }`}
               onClick={handleFolderClick}
             >
               {item.name}
-            </span>
+            </button>
           )}
         </td>
         <td className="px-4 py-3 text-gray-500">Only you</td>
@@ -109,6 +129,15 @@ const TreeItem = ({ item, contactName }) => {
             >
               <Trash2 size={16} />
             </button>
+
+            {!isFolder && (
+              <button
+                onClick={handlePreview}
+                className="btn btn-xs btn-outline "
+              >
+                Open
+              </button>
+            )}
           </div>
         </td>
       </tr>

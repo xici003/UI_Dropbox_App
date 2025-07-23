@@ -21,7 +21,6 @@ button {
 }
 
 .app-container {
-  width: 100vw;
   min-height: 100vh;
   padding: 40px 60px;
   background-color: #ffffff;
