@@ -8,15 +8,17 @@ export const useContactStore = create(
     contactDetails: null,
     error: null,
     setContactIdFromUrl: () => {
-      const params = new URLSearchParams(window.location.search);
-      const id = params.get("contactId");
-      if (id) {
-        set({ contactId: id });
-        return id;
-      } else {
-        console.warn("No contactId found in URL");
-        return null;
-      }
+      // const params = new URLSearchParams(window.location.search);
+      // const id = params.get("contactId");
+      // if (id) {
+      //   set({ contactId: id });
+      //   return id;
+      // } else {
+      //   console.warn("No contactId found in URL");
+      //   return null;
+      // }
+      set({ contactId: "161453951714" });
+      return "161453951714";
     },
     fetchContactDetails: async () => {
       try {

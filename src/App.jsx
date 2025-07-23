@@ -30,43 +30,43 @@ const AuthenticatedUser = ({ children }) => {
   return children;
 };
 
-// Router config
-const appRouter = createBrowserRouter([
-  {
-    path: "/",
-    element: (
-      <ProtectedRoutes>
-        <Dashboard />
-      </ProtectedRoutes>
-    ),
-  },
-  {
-    path: "/login",
-    element: (
-      <AuthenticatedUser>
-        <Login />
-      </AuthenticatedUser>
-    ),
-  },
-  {
-    path: "/signup",
-    element: (
-      <AuthenticatedUser>
-        <SignUp />
-      </AuthenticatedUser>
-    ),
-  },
-]);
-
 // App component
 function App() {
-  const { isCheckingAuth, checkAuth } = useAuthenticated();
+  const { isCheckingAuth, checkAuth, isAuthenticated } = useAuthenticated();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
   if (isCheckingAuth) return <div className="loading">Loading...</div>;
+
+  // Router config
+  const appRouter = createBrowserRouter([
+    {
+      path: "/",
+      element: (
+        <ProtectedRoutes>
+          <Dashboard key={isAuthenticated ? "auth" : "unauth"} />
+        </ProtectedRoutes>
+      ),
+    },
+    {
+      path: "/login",
+      element: (
+        <AuthenticatedUser>
+          <Login />
+        </AuthenticatedUser>
+      ),
+    },
+    {
+      path: "/signup",
+      element: (
+        <AuthenticatedUser>
+          <SignUp />
+        </AuthenticatedUser>
+      ),
+    },
+  ]);
 
   return <RouterProvider router={appRouter} />;
 }
