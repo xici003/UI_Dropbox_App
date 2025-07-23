@@ -10,7 +10,7 @@ import { useContactStore } from "../store/useContactStore";
 import FilePreview from "./FilePreview";
 
 function Dashboard() {
-  const { logout } = useAuthenticated();
+  const { logout, isAuthenticated } = useAuthenticated();
   const {
     items,
     getFolderItems,
@@ -47,7 +47,7 @@ function Dashboard() {
     };
 
     fetchAndSetContact();
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const ensureContactFolder = async () => {
