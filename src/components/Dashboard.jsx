@@ -1,21 +1,21 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowUpFromLine, Folder, Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { useDropboxStore } from "../store/useDropboxStore.js";
+import { useContactStore } from "../store/useContactStore";
+
 import "../App.css";
 import TreeItem from "./TreeItem.jsx";
-import ShareFile from "./ShareFile.jsx";
-import { useDropboxStore } from "../store/useDropboxStore.js";
 import Toast from "./Toast";
-import { useAuthenticated } from "../store/useAuthenticated";
-import { useContactStore } from "../store/useContactStore";
 import FilePreview from "./FilePreview";
+import Header from "./Header";
+import FolderActions from "./FolderActions";
+import SharePopupLink from "./SharePopupLink";
 
 function Dashboard() {
-  const { logout, isAuthenticated } = useAuthenticated();
   const {
     items,
     getFolderItems,
     listFolder,
-    uploadFileOrFolder,
     createFolder,
     loading,
     message,
@@ -24,30 +24,17 @@ function Dashboard() {
     goBack,
     previewUrl,
   } = useDropboxStore();
-  const { setContactIdFromUrl, fetchContactDetails } = useContactStore();
+  const { isFetching, contactDetails } = useContactStore();
 
   const [contactName, setContactName] = useState("");
-  const [openInput, setOpenInput] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
-  const [showUploadMenu, setShowUploadMenu] = useState(false);
+  const [shareItem, setShareItem] = useState(null);
 
   useEffect(() => {
-    const fetchAndSetContact = async () => {
-      const contactId = setContactIdFromUrl();
-      if (!contactId) return;
-
-      await fetchContactDetails();
-
-      const details = useContactStore.getState().contactDetails;
-      if (details?.properties) {
-        setContactName(
-          `${details.properties.firstname} ${details.properties.lastname}`
-        );
-      }
-    };
-
-    fetchAndSetContact();
-  }, [isAuthenticated]);
+    if (contactDetails?.properties) {
+      const name = `${contactDetails.properties.firstname} ${contactDetails.properties.lastname}`;
+      setContactName(name);
+    }
+  }, [contactDetails]);
 
   useEffect(() => {
     const ensureContactFolder = async () => {
@@ -74,142 +61,17 @@ function Dashboard() {
     ensureContactFolder();
   }, [contactName]);
 
-  const handleUpload = async (files) => {
-    for (const file of files) {
-      const relativePath = file.webkitRelativePath || file.name;
-      const dropboxPath = `/${contactName}/${relativePath}`;
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("path", dropboxPath);
-
-      try {
-        await uploadFileOrFolder(formData);
-      } catch (error) {
-        console.error("Upload failed:", dropboxPath, error);
-      }
-    }
-
-    alert("Upload completed.");
-    await listFolder(contactName);
-  };
-  const handleAdd = async (e) => {
-    e.preventDefault();
-    try {
-      const path = `${contactName}/${newFolderName}`;
-      await createFolder(path);
-      setNewFolderName("");
-    } catch (error) {
-      console.log(error);
-    }
-    await listFolder(contactName);
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-  };
-
   return (
-    <div className={previewUrl ? "grid grid-cols-1 md:grid-cols-2 gap-4" : ""}>
-      <div className="app-container">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 flex items-center gap-2">
-            <Folder /> Dropbox Folder for:{" "}
-            <span className="highlight">{contactName}</span>
-          </h2>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="md:col-span-2 app-container">
+        {/* Name contact and logout */}
+        {isFetching ? (
+          <div className="skeleton h-6 w-1/2 mb-4 rounded"></div>
+        ) : (
+          <Header contactName={contactName} />
+        )}
 
-          <button
-            onClick={handleLogout}
-            className="btn btn-sm btn-outline btn-error"
-          >
-            Logout
-          </button>
-        </div>
-
-        <div className="add-buttons">
-          <div className="action-group">
-            <button
-              className="add-btn"
-              onClick={() => setOpenInput(!openInput)}
-            >
-              <Plus size={20} />
-              <span>Create</span>
-            </button>
-
-            {openInput && (
-              <form onSubmit={handleAdd} className="folder-form">
-                <input
-                  type="text"
-                  placeholder="Enter folder name"
-                  value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
-                  className="folder-input border border-gray-500 rounded-lg"
-                />
-                <button type="submit" className="create-btn rounded-lg">
-                  Create
-                </button>
-              </form>
-            )}
-          </div>
-
-          <div className="upload-section">
-            <button
-              className="add-btn"
-              onClick={() => setShowUploadMenu((prev) => !prev)}
-              type="button"
-            >
-              <ArrowUpFromLine size={20} />
-              <span>Upload</span>
-            </button>
-
-            {showUploadMenu && (
-              <div className="upload-menu">
-                <button
-                  className="menu-item"
-                  onClick={() => {
-                    document.getElementById("hidden-file-input")?.click();
-                    setShowUploadMenu(false);
-                  }}
-                >
-                  Upload File
-                </button>
-                <button
-                  className="menu-item"
-                  onClick={() => {
-                    document.getElementById("hidden-folder-input")?.click();
-                    setShowUploadMenu(false);
-                  }}
-                >
-                  Upload Folder
-                </button>
-              </div>
-            )}
-            <input
-              type="file"
-              id="hidden-file-input"
-              style={{ display: "none" }}
-              accept="*/*"
-              onChange={async (e) => {
-                const selectedFile = e.target.files[0];
-                if (selectedFile) handleUpload([selectedFile]);
-              }}
-            />
-            <input
-              type="file"
-              id="hidden-folder-input"
-              style={{ display: "none" }}
-              webkitdirectory="true"
-              multiple
-              onChange={(e) => {
-                const files = Array.from(e.target.files);
-                if (files.length > 0) handleUpload(files);
-              }}
-            />
-          </div>
-
-          <ShareFile contactName={contactName} />
-        </div>
+        <FolderActions contactName={contactName} />
 
         {loading ? (
           <div className="flex flex-col gap-4 mt-6 w-full">
@@ -250,6 +112,7 @@ function Dashboard() {
                       key={item.path}
                       item={item}
                       contactName={contactName}
+                      setShareItem={setShareItem}
                     />
                   ))}
                 </tbody>
@@ -261,11 +124,15 @@ function Dashboard() {
         <Toast message={message} onClose={() => setMessage("")} />
       </div>
 
-      {/* Preview File Modal */}
       {previewUrl && (
-        <div className="p-4">
+        <div className="md:col-span-1 p-4 border border-base-300 rounded-xl shadow">
           <FilePreview />
         </div>
+      )}
+
+      {/* Share Link File Popup */}
+      {shareItem && (
+        <SharePopupLink item={shareItem} onClose={() => setShareItem(null)} />
       )}
     </div>
   );

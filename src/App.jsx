@@ -10,6 +10,7 @@ import SignUp from "./components/SignUp";
 import Dashboard from "./components/Dashboard";
 
 import { useAuthenticated } from "./store/useAuthenticated";
+import { useContactStore } from "./store/useContactStore";
 
 // Protected Route
 const ProtectedRoutes = ({ children }) => {
@@ -21,7 +22,6 @@ const ProtectedRoutes = ({ children }) => {
   return children;
 };
 
-// Authenticated Redirect (nếu đã login thì không cho vào signup/login)
 const AuthenticatedUser = ({ children }) => {
   const { isAuthenticated } = useAuthenticated();
   if (isAuthenticated) {
@@ -33,12 +33,31 @@ const AuthenticatedUser = ({ children }) => {
 // App component
 function App() {
   const { isCheckingAuth, checkAuth, isAuthenticated } = useAuthenticated();
+  const { setContactIdFromUrl, fetchContactDetails } = useContactStore();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  if (isCheckingAuth) return <div className="loading">Loading...</div>;
+  useEffect(() => {
+    const setup = async () => {
+      if (isAuthenticated) {
+        const id = setContactIdFromUrl();
+        if (id) await fetchContactDetails();
+      }
+    };
+    setup();
+  }, [isAuthenticated]);
+
+  if (isCheckingAuth)
+    return (
+      <div className="flex w-full h-screen flex-col gap-4 items-center justify-center">
+        <div className="skeleton h-32 w-full"></div>
+        <div className="skeleton h-4 w-28"></div>
+        <div className="skeleton h-4 w-full"></div>
+        <div className="skeleton h-4 w-full"></div>
+      </div>
+    );
 
   // Router config
   const appRouter = createBrowserRouter([
@@ -46,7 +65,7 @@ function App() {
       path: "/",
       element: (
         <ProtectedRoutes>
-          <Dashboard key={isAuthenticated ? "auth" : "unauth"} />
+          <Dashboard />
         </ProtectedRoutes>
       ),
     },

@@ -1,12 +1,11 @@
+import { memo } from "react";
 import { useState } from "react";
 import { FileText, Folder, FolderPen, Link, Trash2 } from "lucide-react";
 import { useDropboxStore } from "../store/useDropboxStore";
 
-const TreeItem = ({ item, contactName }) => {
+const TreeItem = ({ item, contactName, setShareItem }) => {
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(item.name);
-  const [showShare, setShowShare] = useState(false);
-  const [shareLink, setShareLink] = useState("");
 
   const {
     renameItem,
@@ -15,7 +14,6 @@ const TreeItem = ({ item, contactName }) => {
     getPreview,
     setPreviewUrl,
     listFolder,
-    isShareFolder,
   } = useDropboxStore();
   const isFolder = item.tag === "folder";
   const modified = item.client_modified || null;
@@ -41,15 +39,19 @@ const TreeItem = ({ item, contactName }) => {
   };
 
   const handleShare = async () => {
-    setShowShare(true);
     try {
       const link = await getShareLink(contactName, item.path);
-      setShareLink(link);
+      setShareItem({
+        name: item.name,
+        path: item.path,
+        link,
+        isFolder: item.tag === "folder",
+        contactName,
+      });
     } catch (err) {
       console.error(err);
     }
   };
-
   const handlePreview = async () => {
     const path = `/${contactName}${item.path}`;
     try {
@@ -97,7 +99,7 @@ const TreeItem = ({ item, contactName }) => {
           ) : (
             <button
               className={`truncate max-w-[300px] ${
-                isFolder ? "cursor-pointer hover:underline" : ""
+                isFolder ? "curs or-pointer hover:underline" : ""
               }`}
               onClick={handleFolderClick}
             >
@@ -114,18 +116,21 @@ const TreeItem = ({ item, contactName }) => {
             <button
               onClick={handleShare}
               className="btn btn-xs btn-outline btn-info"
+              aria-label="Share Link"
             >
               <Link size={16} />
             </button>
             <button
               onClick={() => setIsRenaming(true)}
               className="btn btn-xs btn-outline"
+              aria-label="Rename Folder or File"
             >
               <FolderPen size={16} />
             </button>
             <button
               onClick={handleDelete}
               className="btn btn-xs btn-outline btn-error"
+              aria-label="Delete Folder or File"
             >
               <Trash2 size={16} />
             </button>
@@ -141,38 +146,8 @@ const TreeItem = ({ item, contactName }) => {
           </div>
         </td>
       </tr>
-
-      {/* Share link box */}
-      {showShare && (
-        <div className="absolute right-10 bg-base-300 z-10 p-3 rounded-lg w-80 flex justify-center">
-          {isShareFolder ? (
-            <span className="loading loading-ring loading-xl"></span>
-          ) : (
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                className="input input-bordered input-sm w-full"
-                value={shareLink}
-                readOnly
-              />
-              <button
-                onClick={() => navigator.clipboard.writeText(shareLink)}
-                className="btn btn-sm btn-primary"
-              >
-                Copy
-              </button>
-              <button
-                onClick={() => setShowShare(false)}
-                className="btn btn-sm btn-ghost bg-black text-white"
-              >
-                Close
-              </button>
-            </div>
-          )}
-        </div>
-      )}
     </>
   );
 };
 
-export default TreeItem;
+export default memo(TreeItem);

@@ -6,6 +6,7 @@ export const useContactStore = create(
   persist((set, get) => ({
     contactId: null,
     contactDetails: null,
+    isFetching: false,
     error: null,
     setContactIdFromUrl: () => {
       const params = new URLSearchParams(window.location.search);
@@ -17,11 +18,10 @@ export const useContactStore = create(
         console.warn("No contactId found in URL");
         return null;
       }
-      // set({ contactId: "161453951714" });
-      // return "161453951714";
     },
     fetchContactDetails: async () => {
       try {
+        set({ isFetching: true });
         const response = await axios.get(
           `http://localhost:3000/contact/${get().contactId}`,
           {
@@ -29,13 +29,16 @@ export const useContactStore = create(
           }
         );
 
-        set({ contactDetails: response.data.data });
+        set({ contactDetails: response.data.data, isFetching: false });
       } catch (error) {
         console.error(
           "Failed to fetch contact:",
           error.response?.data || error.message
         );
-        set({ error: error.response?.data || error.message });
+        set({
+          error: error.response?.data || error.message,
+          isFetching: false,
+        });
       }
     },
   }))
