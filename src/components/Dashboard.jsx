@@ -62,7 +62,11 @@ function Dashboard() {
   }, [contactName]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div
+      className={`grid gap-4 ${
+        previewUrl ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1"
+      }`}
+    >
       <div className="md:col-span-2 app-container">
         {/* Name contact and logout */}
         {isFetching ? (
